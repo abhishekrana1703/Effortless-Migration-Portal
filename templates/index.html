@@ -1,0 +1,259 @@
+<html>
+<head>
+    <title>Effortless Migration Portal</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column; /* Stack elements vertically */
+            min-height: 100vh; /* Ensure body takes full height of viewport */
+            background: linear-gradient(to bottom right, #81d4fa, #fff59d); /* Light blue to light yellow gradient */
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            padding: 0;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        header {
+            background-color: #1976d2; /* Blue header */
+            color: white;
+            padding: 20px 0;
+            text-align: center; /* Center the header text */
+            position: relative; /* Relative positioning for toggle icon */
+        }
+
+        h1 {
+            font-size: 36px;
+            margin: 0;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle text shadow */
+        }
+
+        .toggle-icon {
+            position: absolute; /* Position in the header */
+            right: 20px; /* Align to the right */
+            top: 20px; /* Adjust position from the top */
+            cursor: pointer;
+            width: 30px; /* Icon size */
+            height: 30px; /* Icon size */
+            background-image: url('https://img.icons8.com/ios-filled/50/ffffff/sun.png'); /* Light mode icon */
+            background-size: cover; /* Cover the whole area */
+        }
+
+        .dark-mode .toggle-icon {
+            background-image: url('https://img.icons8.com/ios-filled/50/ffffff/moon-symbol.png'); /* Dark mode icon */
+        }
+
+        .container {
+            display: inline-block;
+            text-align: left;
+            max-width: 500px;
+            width: 100%;
+            background-color: #ffffff; /* White background for the card */
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+            padding: 20px;
+            margin: 20px auto; /* Center the container */
+            flex: 1; /* Allow this to grow and take available space */
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        .upload-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 14px; /* Reduced text size */
+            color: #1976d2; /* Dark blue */
+            margin-right: 10px;
+        }
+
+        input[type="file"] {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #1976d2; /* Dark blue border */
+            border-radius: 5px;
+            background-color: #e3f2fd; /* Light blue background */
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px; /* Reduced text size */
+            background-color: #43a047; /* Green button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s; /* Add transform transition */
+        }
+
+        button:hover {
+            background-color: #388e3c; /* Darker green on hover */
+            transform: scale(1.05); /* Slightly enlarge on hover */
+        }
+
+        .progress {
+            display: none; /* Hidden by default */
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            width: 0;
+            height: 20px;
+            background-color: #4caf50; /* Green */
+            border-radius: 5px;
+            transition: width 0.3s ease; /* Smooth transition for progress bar */
+        }
+
+        a {
+            font-size: 18px;
+            color: #1976d2; /* Dark blue */
+            text-decoration: none;
+            border: 2px solid #1976d2; /* Dark blue border */
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: inline-block; /* Make the link behave like a button */
+            transition: background-color 0.3s, color 0.3s;
+            text-align: center; /* Center the link text */
+            margin: 0 auto; /* Center the link */
+        }
+
+        a:hover {
+            background-color: #1976d2; /* Dark blue background on hover */
+            color: white;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically */
+            align-items: center; /* Center buttons */
+            gap: 10px; /* Space between buttons */
+        }
+
+        footer {
+            background-color: #1976d2; /* Blue footer */
+            color: white;
+            padding: 5px 0; /* Reduced footer padding */
+            text-align: center;
+            position: relative; /* Relative positioning for footer */
+            font-size: 14px; /* Reduced footer text size */
+        }
+
+        .hit-counter {
+            position: absolute; /* Position it inside the footer */
+            right: 20px; /* Align to the right */
+            top: 10px; /* Adjust position from the top */
+            font-size: 14px; /* Reduced text size */
+            color: white; /* White text */
+        }
+
+        .notification {
+            display: none; /* Hidden by default */
+            background-color: #43a047; /* Green background */
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        /* Dark mode styles */
+        .dark-mode {
+            background-color: #004d40; /* Darker background */
+            color: white; /* White text */
+        }
+    </style>
+    <script>
+        let hitCount = localStorage.getItem('hitCount') ? parseInt(localStorage.getItem('hitCount')) : 0;
+
+        function updateCounter() {
+            hitCount++;
+            localStorage.setItem('hitCount', hitCount);
+            document.getElementById('counter').innerText = `Total visitors: ${hitCount}`;
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        window.onload = function() {
+            updateCounter();
+            // Add event listeners for form submissions to show progress
+            const uploadForm = document.querySelector('form[action="/upload"]');
+            uploadForm.onsubmit = function() {
+                const progress = document.querySelector('.progress');
+                const progressBar = document.querySelector('.progress-bar');
+                const notification = document.querySelector('.notification');
+                progress.style.display = 'block';
+                let width = 0;
+
+                const interval = setInterval(function() {
+                    if (width >= 100) {
+                        clearInterval(interval);
+                        notification.style.display = 'block'; // Show notification
+                        notification.innerText = 'File uploaded successfully!';
+                        setTimeout(() => notification.style.display = 'none', 3000); // Hide after 3 seconds
+                    } else {
+                        width++;
+                        progressBar.style.width = width + '%';
+                    }
+                }, 30); // Simulate upload progress
+            };
+        };
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Effortless Migration Portal</h1>
+        <div class="toggle-icon" onclick="toggleDarkMode()"></div> <!-- Dark mode toggle icon -->
+    </header>
+    
+    <div class="container">
+        <!-- Notification Message -->
+        <div class="notification"></div>
+
+        <!-- CSV Upload Form -->
+        <form action="/upload" method="post" enctype="multipart/form-data" class="upload-container">
+            <label for="file">Upload CSV File:</label>
+            <input type="file" name="file" id="file" accept=".csv">
+            <button type="submit">Upload</button>
+        </form>
+        <div class="progress">
+            <div class="progress-bar"></div>
+        </div>
+
+        <!-- Shell Script Buttons -->
+        <h2 style="text-align: center;">Run Scripts</h2>
+        <div class="button-container">
+            <form action="/run_sh" method="get">
+                <button type="submit">Run run.sh</button>
+            </form>
+
+            <form action="/start_sh" method="get">
+                <button type="submit">Run start.sh</button>
+            </form>
+        </div>
+
+        <!-- Link to download the generated TAR file -->
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="/download">Download Generated TAR File</a>
+        </div>
+    </div>
+
+    <footer>
+        <div class="hit-counter" id="counter">Total visitors: 0</div>
+        <p>&copy; 2024 Effortless Migration Portal. All rights reserved.</p>
+    </footer>
+</body>
+</html>
+ 
